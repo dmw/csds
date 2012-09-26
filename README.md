@@ -87,14 +87,6 @@ git push origin my-csds-branch
 13. Submit your pull request to CSDS Developers
 
 
-Samples
----
-
-![Country Percentage Report](https://github.com/dmw/CSDS/raw/master/report_country.png)
-
-![Request Status Percentage Report](https://github.com/dmw/CSDS/raw/master/report_status.png)
-
-
 Support
 ---
 We offer limited support at [http://coder.cl/products/csds/](http://coder.cl/products/csds/)
