@@ -17,7 +17,9 @@ module Data.CSDS
     (
      module Data.CSDS.StackL
     , module Data.CSDS.QueueL
+    , module Data.CSDS.PrioQueueL
     ) where
 
 import Data.CSDS.StackL
 import Data.CSDS.QueueL
+import Data.CSDS.PrioQueueL

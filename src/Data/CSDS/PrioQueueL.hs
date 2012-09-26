@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies, FlexibleContexts, GADTs #-}
 ----------------------------------------------------------------------------
 -- |
--- Module      :  Data.CSDS.QueueL
+-- Module      :  Data.CSDS.PrioQueueL
 -- Copyright   :  (c) Daniel Molina Wegener 2012
 -- License     :  BSD 3 (see the LICENSE file)
 -- Author      :  Daniel Molina Wegener <dmw@coder.cl>
@@ -14,29 +14,29 @@
 -- me directly if you want to contribute.
 -----------------------------------------------------------------------------
 
-module Data.CSDS.QueueL
+module Data.CSDS.PrioQueueL
     (
-     QueueLClass (..)
-    , QueueLT (..)
+     PrioQueueLClass (..)
+    , PrioQueueLT (..)
     ) where
 
 
-import qualified Data.Foldable    as F
 import qualified Data.List        as L
 import Data.Monoid
 
--- | Queue Type definition, it should be instantiated as QueueL Type.
+
+-- | Queue Type definition, it should be instantiated as PrioQueueL Type.
 --
 -- Please review the example below.
--- > QueueLT Int
-newtype QueueLT t = QueueLT (Int, [t]) deriving (Eq, Ord, Show)
+-- > PrioQueueLT Int
+newtype PrioQueueLT t = PrioQueueLT (Int, [t]) deriving (Ord, Eq, Show)
 
 
 -- | Queue (List Based) Class Definition
 --
 -- Core functions for any Queue (based on List)
 --
-class QueueLClass t where
+class (Ord t, Eq t) => PrioQueueLClass t where
 
     -- | Binging Type
     type SLT t
@@ -72,7 +72,7 @@ class QueueLClass t where
     queueLTList :: t -> [SLT t]
 
     -- | Sorts a list if the binding type implements Ord
-    sortQ :: (Ord (SLT t)) => t -> t
+    sortQ :: t -> t
 
     -- | Folds a queue returning an empty queue because uses popS for folding
     foldlQ :: (t -> SLT t -> t) -> t -> t
@@ -83,60 +83,57 @@ class QueueLClass t where
     -- | Creates a singleton queue
     singletonQ :: SLT t -> t
 
-    -- | Creates a list of singletons
-    singletonLQ :: [SLT t] -> [t]
 
-
--- | QueueLT instance for QueueLT
+-- | PrioQueueLT instance for PrioQueueLT
 --
--- Core functions for any QueueLT (based on List)
+-- Core functions for any PrioQueueLT (based on List)
 --
-instance QueueLClass (QueueLT t) where
+instance (Ord t, Eq t) => PrioQueueLClass (PrioQueueLT t) where
 
-    -- | Binging Type as (QueueLT)
-    type SLT (QueueLT t) = t
+    -- | Binging Type as (PrioQueueLT)
+    type SLT (PrioQueueLT t) = t
 
-    -- | Returns an empty QueueLT
-    emptyQ = QueueLT (0, [])
+    -- | Returns an empty PrioQueueLT
+    emptyQ = PrioQueueLT (0, [])
 
-    -- | Checks if the QueueLT is empty (True if the queue is empty)
+    -- | Checks if the PrioQueueLT is empty (True if the queue is empty)
     isEmptyQ x = lengthQ x == 0
 
-    -- | Push an item into the QueueLT
+    -- | Push an item into the PrioQueueLT
     pushQ s rs = let x = queueLTSize rs
                      y = queueLTList rs
-                 in QueueLT (x + 1, y ++ [s])
+                 in sortQ $ PrioQueueLT (x + 1, y ++ [s])
 
 
-    -- | Pops an item into the QueueLT
+    -- | Pops an item into the PrioQueueLT
     popQ rs = let x = queueLTSize rs
                   y = queueLTList rs
-              in (head y, QueueLT (x - 1, tail y))
+              in (head y, (sortQ $ PrioQueueLT (x - 1, tail y)))
 
-    -- | Returns the QueueLT size or length
+    -- | Returns the PrioQueueLT size or length
     lengthQ = queueLTSize
 
-    -- | Reverse the QueueLT
+    -- | Reverse the PrioQueueLT
     reverseQ rs = let x = queueLTSize rs
                       y = queueLTList rs
-                  in QueueLT (x, reverse y)
+                  in PrioQueueLT (x, reverse y)
 
-    -- | Creates a QueueLT from a list
-    fromListQ x = QueueLT (length x, x)
+    -- | Creates a PrioQueueLT from a list
+    fromListQ x = PrioQueueLT (length x, x)
 
-    -- | Returns the QueueLT as List
+    -- | Returns the PrioQueueLT as List
     toListQ = queueLTList
 
-    -- | Returns the QueueLT size
-    queueLTSize (QueueLT (x, _)) = x
+    -- | Returns the PrioQueueLT size
+    queueLTSize (PrioQueueLT (x, _)) = x
 
-    -- | Returns the QueueLT internal List
-    queueLTList (QueueLT (_, xs)) = xs
+    -- | Returns the PrioQueueLT internal List
+    queueLTList (PrioQueueLT (_, xs)) = xs
 
     -- | Sorts a list if the binding type implements Ord
     sortQ rs = let x = queueLTSize rs
-                   y = queueLTList rs
-               in QueueLT (x, L.sort y)
+                   y = L.sort $ queueLTList rs
+               in PrioQueueLT (x, y)
 
     -- | Folds a queue returning an empty queue because uses popS for folding
     foldlQ f xs = let e = emptyQ
@@ -150,86 +147,36 @@ instance QueueLClass (QueueLT t) where
     -- | Implements mapContact for two lists of binding types returning a queue
     mapConcatQ f xs = let fl = concatMap (map f . toListQ) xs
                           ln = length fl
-                      in QueueLT (ln, fl)
+                      in sortQ $ PrioQueueLT (ln, fl)
 
 
     -- | Creates a singleton queue
-    singletonQ i = QueueLT (1, [i])
-
-    -- | Creates a list of singletons
-    singletonLQ xs = let singletonLQ' :: [t] -> [QueueLT t] -> [QueueLT t]
-                         singletonLQ' rs n = foldl (\ y r -> y ++ [singletonQ r]) n rs
-                     in singletonLQ' xs []
+    singletonQ i = PrioQueueLT (1, [i])
 
 
--- | QueueLT instance for Functor
+-- | PrioQueueLT instance for Monoid
 --
--- Core Functor for any QueueLT (based on List)
--- Uniform action over a parameterized type, generalizing the map
--- function on lists.
---
-instance Functor (QueueLT) where
-
-    -- | Uniform action over a parameterized type.
-    fmap f rs = let x = queueLTSize rs
-                    y = queueLTList rs
-                in QueueLT (x, fmap f y)
-
-
--- | QueueLT instance for Monoid
---
--- Core Monoid for any QueueLT (based on List)
+-- Core Monoid for any PrioQueueLT (based on List)
 -- A class for monoids (types with an associative binary operation
 -- that has an identity) with various general-purpose instances.
 --
-instance Monoid (QueueLT t) where
+instance (Ord t, Eq t) => Monoid (PrioQueueLT t) where
 
     -- | Identity of mappend
-    mempty = QueueLT (0, [])
+    mempty = PrioQueueLT (0, [])
 
     -- | An associative operation (concatenation)
     mappend a b = let x = queueLTSize a
                       y = queueLTList a
                       m = queueLTSize b
                       n = queueLTList b
-                  in QueueLT (x + m, y `mappend` n)
+                  in sortQ $ PrioQueueLT (x + m, y `mappend` n)
 
     -- | Fold a list using the monoid.
     -- For most types, the default definition for mconcat will be used,
     -- but the function is included in the class definition so that an
     -- optimized version can be provided for specific types.
     mconcat a = let foldLT (x:xs) r = foldLT xs $ r `mappend` x
-                    foldLT [] r = r
+                    foldLT [] r = sortQ $ r
                 in foldLT a mempty
 
-
--- | QueueLT instance for Foldable
---
--- Core Foldable for any QueueLT (based on List)
--- Class of data structures that can be folded to a summary value.
--- Many of these functions generalize Prelude, Control.Monad and Data.List
--- functions of the same names from lists to any Foldable functor. To avoid
--- ambiguity, either import those modules hiding these names or qualify uses
--- of these function names with an alias for this module.
---
-instance F.Foldable (QueueLT) where
-
-    -- | Combine the elements of a structure using a monoid.
-    fold m = mconcat $ toListQ m
-
-    -- | Map each element of the structure to a monoid, and combine the results.
-    foldMap f m = mconcat (fmap f $ toListQ m)
-
-    -- | Right-associative fold of a structure.
-    foldr f n m = L.foldr f n (toListQ m)
-
-    -- | Left-associative fold of a structure.
-    foldl f n m = L.foldl f n (toListQ m)
-
-    -- | A variant of foldr that has no base case, and thus may only be applied
-    -- to non-empty structures.
-    foldr1 f m = L.foldr1 f (toListQ m)
-
-    -- | A variant of foldl that has no base case, and thus may only
-    -- be applied to non-empty structures.
-    foldl1 f m = L.foldl1 f (toListQ m)
