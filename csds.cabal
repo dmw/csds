@@ -33,6 +33,7 @@ Library
     , hspec-expectations
   exposed-modules:
       Data.CSDS.StackL
+      , Data.CSDS.QueueL
 --  other-modules:
 --      Test.Hspec.Pending
 --      Test.Hspec.Internal
@@ -52,4 +53,3 @@ test-suite hspec
     , csds >= 0.1
     , hspec
     , hspec-expectations
-

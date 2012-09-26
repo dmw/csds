@@ -16,6 +16,8 @@
 module Data.CSDS
     (
      module Data.CSDS.StackL
+    , module Data.CSDS.QueueL
     ) where
 
 import Data.CSDS.StackL
+import Data.CSDS.QueueL
