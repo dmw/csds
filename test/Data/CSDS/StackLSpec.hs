@@ -16,7 +16,7 @@
 module Data.CSDS.StackLSpec (spec) where
 
 
-import Data.Monoid ()
+import Data.Monoid
 import Data.CSDS.StackL
 import Test.Hspec
 
@@ -36,10 +36,65 @@ testReverseAndSortPop = let x :: StackLT Int
                             z = sortS x
                  in y == z
 
-spec :: Spec
-spec = do it "check StackL push and pop operations" $
-             testPushAndPop `shouldBe` True
-          it "check StackL sort and reverse operations" $
-             testReverseAndSortPop `shouldBe` True
 
+testMonoidMappend :: Bool
+testMonoidMappend = let x :: StackLT Int
+                        y :: StackLT Int
+                        l :: [Int]
+                        x = pushS 20 $ pushS 10 $ pushS 5 emptyS
+                        y = pushS 5 $ pushS 15 $ pushS 25 emptyS
+                        z = x `mappend` y
+                        l = [20, 10, 5, 5, 15, 25]
+                    in toListS z == l
+
+
+testMonoidMconcat :: Bool
+testMonoidMconcat = let x :: StackLT Int
+                        y :: StackLT Int
+                        x = pushS 20 $ pushS 10 $ pushS 5 emptyS
+                        y = pushS 5 $ pushS 15 $ pushS 25 emptyS
+                        z = x `mappend` y
+                        r = mconcat [x, y]
+                    in toListS r == toListS z
+
+
+testFoldLS :: Bool
+testFoldLS = let x :: StackLT Int
+                 x = pushS 25 $ pushS 20 $ pushS 10 $ pushS 5 emptyS
+                 r = foldlS (\ n y -> pushS y n) x
+             in toListS r == [5, 10, 20, 25]
+
+
+testFMap :: Bool
+testFMap = let x :: StackLT Int
+               x = pushS 25 $ pushS 20 $ pushS 10 $ pushS 5 emptyS
+               r = fmap (+ 5) x
+           in toListS r == [30, 25, 15, 10]
+
+
+testMapConcat :: Bool
+testMapConcat = let x :: StackLT Int
+                    r :: [StackLT Int]
+                    x = pushS 25 $ pushS 20 $ pushS 10 $ pushS 5 emptyS
+                    r = map singletonS $ toListS x
+                    m = mapConcatS (\ y -> y + 5) r
+                    n = fmap (+ 5) x
+                in toListS n == toListS m
+
+
+spec :: Spec
+spec = do it "check StackL pushS and popS operations" $
+             testPushAndPop `shouldBe` True
+          it "check StackL sortS and reverseS operations" $
+             testReverseAndSortPop `shouldBe` True
+          it "check StackL Monoid mappend operations" $
+             testMonoidMappend `shouldBe` True
+          it "check StackL Monoid mconcat operations" $
+             testMonoidMconcat `shouldBe` True
+          it "check StackL foldLS operations" $
+             testFoldLS `shouldBe` True
+          it "check StackL fmap operations" $
+             testFMap `shouldBe` True
+          it "check StackL mapConcatS operations" $
+             testMapConcat `shouldBe` True
 
