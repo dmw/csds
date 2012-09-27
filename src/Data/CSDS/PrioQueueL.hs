@@ -108,7 +108,7 @@ instance (Ord t, Eq t) => PrioQueueLClass (PrioQueueLT t) where
     -- | Pops an item into the PrioQueueLT
     popQ rs = let x = queueLTSize rs
                   y = queueLTList rs
-              in (head y, (sortQ $ PrioQueueLT (x - 1, tail y)))
+              in (head y, sortQ $ PrioQueueLT (x - 1, tail y))
 
     -- | Returns the PrioQueueLT size or length
     lengthQ = queueLTSize
@@ -177,6 +177,5 @@ instance (Ord t, Eq t) => Monoid (PrioQueueLT t) where
     -- but the function is included in the class definition so that an
     -- optimized version can be provided for specific types.
     mconcat a = let foldLT (x:xs) r = foldLT xs $ r `mappend` x
-                    foldLT [] r = sortQ $ r
+                    foldLT [] r = sortQ r
                 in foldLT a mempty
-

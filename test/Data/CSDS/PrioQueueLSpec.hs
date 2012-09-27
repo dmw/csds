@@ -63,7 +63,7 @@ testMonoidMconcat = let x :: PrioQueueLT Int
 testFoldLQ :: Bool
 testFoldLQ = let x :: PrioQueueLT Int
                  x = pushQ 25 $ pushQ 20 $ pushQ 10 $ pushQ 5 emptyQ
-                 r = foldlQ (\ n y -> pushQ y n) x
+                 r = foldlQ (flip pushQ) x
              in toListQ r == [5, 10, 20, 25]
 
 
@@ -72,7 +72,7 @@ testMapConcat = let x :: PrioQueueLT Int
                     r :: [PrioQueueLT Int]
                     x = pushQ 25 $ pushQ 20 $ pushQ 10 $ pushQ 5 emptyQ
                     r = map singletonQ $ toListQ x
-                    m = mapConcatQ (\ y -> y + 5) r
+                    m = mapConcatQ (+ 5) r
                 in toListQ m == [10, 15, 25, 30]
 
 

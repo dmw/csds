@@ -18,6 +18,7 @@ module Data.CSDS.StackL
     (
      StackLClass (..)
     , StackLT (..)
+    , singletonSF
     ) where
 
 
@@ -30,6 +31,10 @@ import Data.Monoid
 -- Please review the example below.
 -- > StackLT Int
 newtype StackLT t = StackLT (Int, [t]) deriving (Eq, Ord, Show)
+
+
+singletonSF :: t -> StackLT t
+singletonSF x = StackLT (1, [x])
 
 
 -- | Stack (List Based) Class Definition
@@ -198,8 +203,7 @@ instance Monoid (StackLT t) where
     -- For most types, the default definition for mconcat will be used,
     -- but the function is included in the class definition so that an
     -- optimized version can be provided for specific types.
-    mconcat a = let foldLT (x:xs) r = foldLT xs $ r `mappend` x
-                    foldLT [] r = r
+    mconcat a = let foldLT xs r = foldl mappend r xs
                 in foldLT a mempty
 
 
@@ -233,3 +237,13 @@ instance F.Foldable (StackLT) where
     -- | A variant of foldl that has no base case, and thus may only
     -- be applied to non-empty structures.
     foldl1 f m = L.foldl1 f (toListS m)
+
+
+-- | The Monad instance for StackLT based on its Monoid
+instance Monad (StackLT) where
+    -- | Inject a value into the monadic type.
+    return x = StackLT (1, [x])
+
+    -- | Sequentially compose two actions, passing any value produced
+    -- by the first as an argument to the second.
+    (StackLT (_, xs)) >>= g = mconcat (map g xs)

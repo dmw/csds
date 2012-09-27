@@ -25,8 +25,8 @@ testPushAndPop :: Bool
 testPushAndPop = let x :: StackLT Int
                      x = pushS 20 $ pushS 10 $ pushS 5 emptyS
                      (y, z) = popS x
-                 in (toListS x) == [20, 10, 5]
-                        && (toListS z) == [10, 5]
+                 in toListS x == [20, 10, 5]
+                        && toListS z == [10, 5]
                                && y == 20
 
 testReverseAndSortPop :: Bool
@@ -61,7 +61,7 @@ testMonoidMconcat = let x :: StackLT Int
 testFoldLS :: Bool
 testFoldLS = let x :: StackLT Int
                  x = pushS 25 $ pushS 20 $ pushS 10 $ pushS 5 emptyS
-                 r = foldlS (\ n y -> pushS y n) x
+                 r = foldlS (flip pushS) x
              in toListS r == [5, 10, 20, 25]
 
 
@@ -77,9 +77,28 @@ testMapConcat = let x :: StackLT Int
                     r :: [StackLT Int]
                     x = pushS 25 $ pushS 20 $ pushS 10 $ pushS 5 emptyS
                     r = map singletonS $ toListS x
-                    m = mapConcatS (\ y -> y + 5) r
+                    m = mapConcatS (+ 5) r
                     n = fmap (+ 5) x
                 in toListS n == toListS m
+
+
+addConstMonadic1 :: Int -> Int -> StackLT Int
+addConstMonadic1 m x = singletonS (x + 5 + m)
+
+
+addConstMonadic2 :: Int -> Int -> Int -> StackLT Int
+addConstMonadic2 m n x = singletonS (x + m + n)
+
+
+testMonadicSL :: Bool
+testMonadicSL = let x :: StackLT Int
+                    r :: [Int]
+                    r = [10, 20, 30]
+                    x = fromListS r
+                        >>= addConstMonadic1 10
+                        >>= addConstMonadic1 20
+                        >>= addConstMonadic2 (- 10) 25
+                in toListS x == [65, 75, 85]
 
 
 spec :: Spec
@@ -97,4 +116,5 @@ spec = do it "check StackL pushS and popS operations" $
              testFMap `shouldBe` True
           it "check StackL mapConcatS operations" $
              testMapConcat `shouldBe` True
-
+          it "check StackL Monadic operations" $
+             testMonadicSL `shouldBe` True

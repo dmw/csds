@@ -198,8 +198,7 @@ instance Monoid (QueueLT t) where
     -- For most types, the default definition for mconcat will be used,
     -- but the function is included in the class definition so that an
     -- optimized version can be provided for specific types.
-    mconcat a = let foldLT (x:xs) r = foldLT xs $ r `mappend` x
-                    foldLT [] r = r
+    mconcat a = let foldLT xs r = foldl mappend r xs
                 in foldLT a mempty
 
 
@@ -233,3 +232,13 @@ instance F.Foldable (QueueLT) where
     -- | A variant of foldl that has no base case, and thus may only
     -- be applied to non-empty structures.
     foldl1 f m = L.foldl1 f (toListQ m)
+
+
+-- | The Monad instance for QueueLT based on its Monoid
+instance Monad (QueueLT) where
+    -- | Inject a value into the monadic type.
+    return x = QueueLT (1, [x])
+
+    -- | Sequentially compose two actions, passing any value produced
+    -- by the first as an argument to the second.
+    (QueueLT (_, xs)) >>= g = mconcat (map g xs)

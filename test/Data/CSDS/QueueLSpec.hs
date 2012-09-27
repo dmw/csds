@@ -60,7 +60,7 @@ testMonoidMconcat = let x :: QueueLT Int
 testFoldLQ :: Bool
 testFoldLQ = let x :: QueueLT Int
                  x = pushQ 25 $ pushQ 20 $ pushQ 10 $ pushQ 5 emptyQ
-                 r = foldlQ (\ n y -> pushQ y n) x
+                 r = foldlQ (flip pushQ) x
              in toListQ r == [5, 10, 20, 25]
 
 
@@ -76,9 +76,28 @@ testMapConcat = let x :: QueueLT Int
                     r :: [QueueLT Int]
                     x = pushQ 25 $ pushQ 20 $ pushQ 10 $ pushQ 5 emptyQ
                     r = map singletonQ $ toListQ x
-                    m = mapConcatQ (\ y -> y + 5) r
+                    m = mapConcatQ (+ 5) r
                     n = fmap (+ 5) x
                 in toListQ n == toListQ m
+
+
+addConstMonadic1 :: Int -> Int -> QueueLT Int
+addConstMonadic1 m x = singletonQ (x + 5 + m)
+
+
+addConstMonadic2 :: Int -> Int -> Int -> QueueLT Int
+addConstMonadic2 m n x = singletonQ (x + m + n)
+
+
+testMonadicQL :: [Int]
+testMonadicQL = let x :: QueueLT Int
+                    r :: [Int]
+                    r = [10, 20, 30]
+                    x = fromListQ r
+                        >>= addConstMonadic1 10
+                        >>= addConstMonadic1 20
+                        >>= addConstMonadic2 (- 10) 25
+                in toListQ x
 
 
 spec :: Spec
@@ -96,3 +115,5 @@ spec = do it "check QueueL pushQ and popQ operations" $
              testFMap `shouldBe` True
           it "check QueueL mapConcatQ operations" $
              testMapConcat `shouldBe` True
+          it "check QueueL Monadic operations" $
+             testMonadicQL `shouldBe` [65, 75, 85]
