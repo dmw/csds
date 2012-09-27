@@ -101,6 +101,18 @@ testMonadicSL = let x :: StackLT Int
                 in toListS x == [65, 75, 85]
 
 
+testMonadic2SL :: Bool
+testMonadic2SL = let x :: StackLT Int
+                     r :: [Int]
+                     r = [10, 20, 30]
+                     x = fromListS r
+                         >>= addConstMonadic1 10
+                         >>= addConstMonadic1 20
+                         >>= addConstMonadic2 (- 10) 25
+                         >> addConstMonadic2 (- 10) 1 5
+                in toListS x == [(- 4)]
+
+
 spec :: Spec
 spec = do it "check StackL pushS and popS operations" $
              testPushAndPop `shouldBe` True
@@ -118,3 +130,5 @@ spec = do it "check StackL pushS and popS operations" $
              testMapConcat `shouldBe` True
           it "check StackL Monadic operations" $
              testMonadicSL `shouldBe` True
+          it "check StackL Monadic 2 operations" $
+             testMonadic2SL `shouldBe` True

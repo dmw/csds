@@ -89,7 +89,7 @@ addConstMonadic2 :: Int -> Int -> Int -> QueueLT Int
 addConstMonadic2 m n x = singletonQ (x + m + n)
 
 
-testMonadicQL :: [Int]
+testMonadicQL :: Bool
 testMonadicQL = let x :: QueueLT Int
                     r :: [Int]
                     r = [10, 20, 30]
@@ -97,7 +97,19 @@ testMonadicQL = let x :: QueueLT Int
                         >>= addConstMonadic1 10
                         >>= addConstMonadic1 20
                         >>= addConstMonadic2 (- 10) 25
-                in toListQ x
+                in toListQ x == [65, 75, 85]
+
+
+testMonadic2QL :: Bool
+testMonadic2QL = let x :: QueueLT Int
+                     r :: [Int]
+                     r = [10, 20, 30]
+                     x = fromListQ r
+                         >>= addConstMonadic1 10
+                         >>= addConstMonadic1 20
+                         >>= addConstMonadic2 (- 10) 25
+                         >> addConstMonadic2 (- 10) 1 5
+                 in toListQ x == [(- 4)]
 
 
 spec :: Spec
@@ -116,4 +128,6 @@ spec = do it "check QueueL pushQ and popQ operations" $
           it "check QueueL mapConcatQ operations" $
              testMapConcat `shouldBe` True
           it "check QueueL Monadic operations" $
-             testMonadicQL `shouldBe` [65, 75, 85]
+             testMonadicQL `shouldBe` True
+          it "check QueueL Monadic 2 operations" $
+             testMonadic2QL `shouldBe` True

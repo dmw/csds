@@ -247,3 +247,13 @@ instance Monad (StackLT) where
     -- | Sequentially compose two actions, passing any value produced
     -- by the first as an argument to the second.
     (StackLT (_, xs)) >>= g = mconcat (map g xs)
+
+    -- | Sequentially compose two actions, discarding any value produced
+    -- by the first, like sequencing operators (such as the semicolon) in
+    -- imperative languages.
+    (StackLT (_, _)) >> (StackLT (n, m)) = StackLT (n, m)
+
+    -- | Fail with a message. This operation is not part of the mathematical
+    -- definition of a monad, but is invoked on pattern-match failure in a
+    -- do expression.
+    fail _ = emptyS
