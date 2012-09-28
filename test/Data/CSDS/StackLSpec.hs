@@ -29,6 +29,7 @@ testPushAndPop = let x :: StackLT Int
                         && toListS z == [10, 5]
                                && y == 20
 
+
 testReverseAndSortPop :: Bool
 testReverseAndSortPop = let x :: StackLT Int
                             x = pushS 20 $ pushS 10 $ pushS 5 emptyS
@@ -37,25 +38,22 @@ testReverseAndSortPop = let x :: StackLT Int
                  in y == z
 
 
-testMonoidMappend :: Bool
+testMonoidMappend :: [Int]
 testMonoidMappend = let x :: StackLT Int
                         y :: StackLT Int
-                        l :: [Int]
-                        x = pushS 20 $ pushS 10 $ pushS 5 emptyS
-                        y = pushS 5 $ pushS 15 $ pushS 25 emptyS
+                        x = pushS 1 $ pushS 2 $ pushS 3 emptyS
+                        y = pushS 4 $ pushS 5 $ pushS 6 emptyS
                         z = x `mappend` y
-                        l = [20, 10, 5, 5, 15, 25]
-                    in toListS z == l
+                    in toListS z
 
 
-testMonoidMconcat :: Bool
+testMonoidMconcat :: [Int]
 testMonoidMconcat = let x :: StackLT Int
                         y :: StackLT Int
-                        x = pushS 20 $ pushS 10 $ pushS 5 emptyS
-                        y = pushS 5 $ pushS 15 $ pushS 25 emptyS
-                        z = x `mappend` y
+                        x = pushS 1 $ pushS 2 $ pushS 3 emptyS
+                        y = pushS 4 $ pushS 5 $ pushS 6 emptyS
                         r = mconcat [x, y]
-                    in toListS r == toListS z
+                    in toListS r
 
 
 testFoldLS :: Bool
@@ -72,63 +70,73 @@ testFMap = let x :: StackLT Int
            in toListS r == [30, 25, 15, 10]
 
 
-testMapConcat :: Bool
+testMapConcat :: [Int]
 testMapConcat = let x :: StackLT Int
                     r :: [StackLT Int]
-                    x = pushS 25 $ pushS 20 $ pushS 10 $ pushS 5 emptyS
+                    x = pushS 1 $ pushS 2 $ pushS 3 $ pushS 4 emptyS
                     r = map singletonS $ toListS x
-                    m = mapConcatS (+ 5) r
-                    n = fmap (+ 5) x
-                in toListS n == toListS m
+                    m = mapConcatS (+ 10) r
+                in toListS m
 
 
 addConstMonadic1 :: Int -> Int -> StackLT Int
-addConstMonadic1 m x = singletonS (x + 5 + m)
+addConstMonadic1 m x = singletonS (x + 1 - m)
 
 
 addConstMonadic2 :: Int -> Int -> Int -> StackLT Int
 addConstMonadic2 m n x = singletonS (x + m + n)
 
 
-testMonadicSL :: Bool
-testMonadicSL = let x :: StackLT Int
-                    r :: [Int]
-                    r = [10, 20, 30]
-                    x = fromListS r
-                        >>= addConstMonadic1 10
-                        >>= addConstMonadic1 20
-                        >>= addConstMonadic2 (- 10) 25
-                in toListS x == [65, 75, 85]
+testMonadic1SL :: [Int]
+testMonadic1SL = let x :: StackLT Int
+                     r :: [Int]
+                     r = [1, 2, 3]
+                     x = fromListS r
+                         >>= addConstMonadic1 (- 1)
+                         >>= addConstMonadic1 1
+                         >>= addConstMonadic2 (- 1) 1
+                         >>= addConstMonadic2 10 0
+                 in toListS x
 
 
-testMonadic2SL :: Bool
+testMonadic2SL :: [Int]
 testMonadic2SL = let x :: StackLT Int
                      r :: [Int]
-                     r = [10, 20, 30]
+                     r = [1, 2, 3]
                      x = fromListS r
-                         >>= addConstMonadic1 10
-                         >>= addConstMonadic1 20
-                         >>= addConstMonadic2 (- 10) 25
-                         >> addConstMonadic2 (- 10) 1 5
-                in toListS x == [(- 4)]
+                         >>= addConstMonadic1 (- 1)
+                         >>= addConstMonadic1 1
+                         >>= addConstMonadic2 (- 1) 1
+                         >>= addConstMonadic2 10 0
+                         >> addConstMonadic1 1 1
+                         >> addConstMonadic2 1 1 1
+                 in toListS x
 
 
 spec :: Spec
 spec = do it "check StackL pushS and popS operations" $
              testPushAndPop `shouldBe` True
+
           it "check StackL sortS and reverseS operations" $
              testReverseAndSortPop `shouldBe` True
+
           it "check StackL Monoid mappend operations" $
-             testMonoidMappend `shouldBe` True
+             testMonoidMappend `shouldBe` [1, 2, 3, 4, 5, 6]
+
           it "check StackL Monoid mconcat operations" $
-             testMonoidMconcat `shouldBe` True
+             testMonoidMconcat `shouldBe` [1, 2, 3, 4, 5, 6]
+
           it "check StackL foldLS operations" $
              testFoldLS `shouldBe` True
+
           it "check StackL fmap operations" $
              testFMap `shouldBe` True
+
           it "check StackL mapConcatS operations" $
-             testMapConcat `shouldBe` True
-          it "check StackL Monadic operations" $
-             testMonadicSL `shouldBe` True
-          it "check StackL Monadic 2 operations" $
-             testMonadic2SL `shouldBe` True
+             testMapConcat `shouldBe` [11, 12, 13, 14]
+
+          it "check StackL Monadic >>= operations" $
+             testMonadic1SL `shouldBe` [13, 14, 15]
+
+          it "check StackL Monadic >> operations" $
+             testMonadic2SL `shouldBe` [3]
