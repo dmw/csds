@@ -24,7 +24,7 @@ source-repository head
 
 Library
   ghc-options:
-      -Wall -Werror -O2 -rtsopts -auto-all -caf-all -fobject-code -fforce-recomp -funbox-strict-fields
+      -Wall -Werror -O2 -rtsopts -auto-all -caf-all -fobject-code -fforce-recomp -funbox-strict-fields +RTS -K64m -M64M -RTS
   hs-source-dirs:
       src
   build-depends:
@@ -35,6 +35,7 @@ Library
   exposed-modules:
       Data.CSDS.StackL
       , Data.CSDS.QueueL
+      , Data.CSDS.DequeL
       , Data.CSDS.PrioQueueL
 --  other-modules:
 --      Test.Hspec.Pending
@@ -49,7 +50,7 @@ test-suite hspec
   main-is:
       Spec.hs
   ghc-options:
-      -Wall -Werror -O2 -rtsopts -auto-all -caf-all -fobject-code -fforce-recomp -funbox-strict-fields
+      -Wall -Werror -O2 -rtsopts -auto-all -caf-all -fobject-code -fforce-recomp -funbox-strict-fields +RTS -K64m -M64M -RTS
   build-depends:
       base >= 4 && <= 5
     , csds >= 0.1
