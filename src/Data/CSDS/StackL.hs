@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts, GADTs #-}
+{-# LANGUAGE TypeFamilies, GADTs, FlexibleContexts #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.CSDS.StackL
@@ -22,9 +22,10 @@ module Data.CSDS.StackL
     ) where
 
 
-import qualified Data.Foldable    as F
-import qualified Data.List        as L
+import qualified Data.Foldable      as F
+import qualified Data.List          as L
 import Data.Monoid
+
 
 -- | Stack Type definition, it should be instantiated as StackL Type.
 --
